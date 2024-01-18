@@ -16,15 +16,17 @@ Before applying the Terraform configurations, make sure you have the following p
 2. AWS CLI configured with the required profile.
    In your home directory, create .aws/credentials file and paste the following contents:
 
+````ini
 [rd]
 aws_access_key_id = <AWS_ACCESS_KEY>
 aws_secret_access_key = <AWS_SECRET_KEY>
+```ini
 
 3. Two secrets created in AWS Secret Manager: `expensemanagerdb_username` and `expensemanagerdb_password` to store RDS username and password respectively.
 4. Create a S3 bucket for terraform backed. Make sure the bucket name will be used in backend.tf file in each folder.
 5. Create a DynamoDB for terraform backend. Make sure the DynamoDB table name will be used in backend.tf in each folder.
 
-Click on "Store a new secret" -> Select "Other type of secret" -> Select "Plaintext" -> Remove existing content and paste the username / password that you are storing.
+Click on `Store a new secret` -> Select `Other type of secret` -> Select `Plaintext` -> Remove existing content and paste the username / password that you are storing.
 
 ## Folder Structure
 
@@ -47,7 +49,7 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
    terraform init
    terraform plan
    terraform apply
-   ```
+  ```
 
 2. **RDS Configuration:**
 
@@ -90,4 +92,7 @@ The Terraform state is stored remotely using an S3 backend. Make sure to configu
 ## Cleanup
 
 To destroy the created infrastructure, run terraform destroy in each component's directory in reverse order.
+```
 web-server -> app -> rds -> vpc
+```
+````
