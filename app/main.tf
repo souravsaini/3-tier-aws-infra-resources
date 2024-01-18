@@ -83,7 +83,7 @@ sudo apt install php8.0 -y
 php -v
 
 # Install Composer
-sudo apt install php8.0-cli php8.0-common php8.0-imap php8.0-redis php8.0-xml php8.0-zip php8.0-mbstring
+sudo apt install -y php8.0-cli php8.0-common php8.0-imap php8.0-redis php8.0-xml php8.0-zip php8.0-mbstring
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
 php composer-setup.php
 php -r "unlink('composer-setup.php');"
@@ -93,19 +93,28 @@ composer --version
 
 # Install Symfony 7 (Replace with your Symfony installation steps)
 curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | sudo -E bash
-sudo apt install symfony-cli
+sudo apt install -y symfony-cli
 
 # Install php-mysql
-sudo apt-get install php-mysql
+sudo apt-get install -y php8.0-mysql
 
 # Clone Git Repo
 git clone https://github.com/souravsaini/expense-calculator-app.git
 cd expense-calculator-app
+pwd
+ls
 
 echo 'DATABASE_URL="mysql://${data.aws_secretsmanager_secret_version.rds_username.secret_string}:${data.aws_secretsmanager_secret_version.rds_password.secret_string}@${data.aws_db_instance.db_instance.endpoint}:3306/${data.aws_db_instance.db_instance.db_name}"' > .env
 
+cat .env
+
+# Run the database migration
+php bin/console make:migration --no-interaction
+php bin/console doctrine:migrations:migrate --no-interaction
+
+echo "Running the Application"
 # Run the application in the background
-nohup symfony serve --daemon --host=YOUR_PRIVATE_IP --port=8000 > /dev/null 2>&1 &
+nohup symfony serve  --port=8000 > /dev/null 2>&1 &
 EOT
 }
 
@@ -238,4 +247,10 @@ resource "aws_lb_listener_rule" "web_lb_rule" {
       values = ["/"]
     }
   }
+}
+
+# Attach ASG to Target Group
+resource "aws_autoscaling_attachment" "web_asg_attachment" {
+  autoscaling_group_name = aws_autoscaling_group.app_asg.name
+  lb_target_group_arn   = aws_lb_target_group.app_tg.arn
 }

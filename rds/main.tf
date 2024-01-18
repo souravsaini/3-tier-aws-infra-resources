@@ -56,6 +56,7 @@ module "rds" {
   instance_class         = var.db_instance_class
   allocated_storage      = var.db_allocated_storage
   db_name                = var.db_name
+  manage_master_user_password = false
   username               = data.aws_secretsmanager_secret_version.rds_username.secret_string
   password               = data.aws_secretsmanager_secret_version.rds_password.secret_string
   apply_immediately      = true
