@@ -3,70 +3,12 @@ provider "aws" {
   profile = var.profile
 }
 
-# Fetch VPC CIDR block using data source
-data "aws_vpc" "my_vpc" {
-  id = var.vpc_id
-}
-
-
-
-# Security Group
-resource "aws_security_group" "web_sg" {
-  vpc_id = var.vpc_id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.my_vpc.cidr_block] 
-  }
-
-  ingress {
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.my_vpc.cidr_block] 
-  }
-}
-
 # Key Pair
 resource "aws_key_pair" "app_key_pair" {
   key_name   = "webapp-key-pair"
   public_key = var.ssh_public_key
 }
 
-data "aws_caller_identity" "current" {}
-
-data "aws_secretsmanager_secret" "secret_username" {
-  arn = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.db_username}"
-}
-
-
-#Fetch DB Password from AWS Secret Manager
-data "aws_secretsmanager_secret_version" "rds_username" {
-  secret_id = data.aws_secretsmanager_secret.secret_username.id
-}
-
-
-data "aws_secretsmanager_secret" "secret_password" {
-  arn = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.db_secret_name}"
-}
-
-#Fetch DB Password from AWS Secret Manager
-data "aws_secretsmanager_secret_version" "rds_password" {
-  secret_id = data.aws_secretsmanager_secret.secret_password.id
-}
-
-data "aws_db_instance" "db_instance" {
-  db_instance_identifier = var.db_instance_identifier
-}
 
 data "template_file" "user_data" {
   template = <<-EOT
@@ -157,51 +99,11 @@ resource "aws_autoscaling_group" "app_asg" {
   wait_for_capacity_timeout  = "0"
 }
 
-# CloudWatch Alarms for Average CPU Usage
-resource "aws_cloudwatch_metric_alarm" "cpu_alarm_high" {
-  alarm_name          = "web-cpu-alarm-high"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 300  # 5 minutes
-  statistic           = "Average"
-  threshold           = 80
-  actions_enabled     = true
-  alarm_actions       = [aws_autoscaling_policy.web_scale_up_policy.arn]
-}
-
-resource "aws_autoscaling_policy" "web_scale_up_policy" {
-  name                   = "web-scale-up-policy"
-  scaling_adjustment     = 1
-  cooldown               = 300  # 5 minutes
-  adjustment_type        = "ChangeInCapacity"
-
+# Attach ASG to Target Group
+resource "aws_autoscaling_attachment" "web_asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.app_asg.name
+  lb_target_group_arn   = aws_lb_target_group.app_tg.arn
 }
-
-resource "aws_cloudwatch_metric_alarm" "cpu_alarm_low" {
-  alarm_name          = "web-cpu-alarm-low"
-  comparison_operator = "LessThanOrEqualToThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 300  # 5 minutes
-  statistic           = "Average"
-  threshold           = 20  # Adjust as needed for the low threshold
-  actions_enabled     = true
-  alarm_actions       = [aws_autoscaling_policy.web_scale_down_policy.arn]
-}
-
-resource "aws_autoscaling_policy" "web_scale_down_policy" {
-  name                      = "web-scale-down-policy"
-  scaling_adjustment        = -1
-  cooldown                  = 300  # 5 minutes
-  adjustment_type           = "ChangeInCapacity"
-
-  autoscaling_group_name = aws_autoscaling_group.app_asg.name
-}
-
 
 # Private Load Balancer
 resource "aws_lb" "private_lb" {
@@ -247,10 +149,4 @@ resource "aws_lb_listener_rule" "web_lb_rule" {
       values = ["/"]
     }
   }
-}
-
-# Attach ASG to Target Group
-resource "aws_autoscaling_attachment" "web_asg_attachment" {
-  autoscaling_group_name = aws_autoscaling_group.app_asg.name
-  lb_target_group_arn   = aws_lb_target_group.app_tg.arn
 }

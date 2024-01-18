@@ -3,46 +3,6 @@ provider "aws" {
   profile = var.profile
 }
 
-# Fetch VPC CIDR block using data source
-data "aws_vpc" "my_vpc" {
-  id = var.vpc_id
-}
-
-# Create a default security group for rds instance
-resource "aws_security_group" "rds_security_group" {
-  vpc_id = data.aws_vpc.my_vpc.id
-
-  // 3306 port open for MySQL traffic
-  ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.my_vpc.cidr_block]
-  }
-}
-
-data "aws_caller_identity" "current" {}
-
-data "aws_secretsmanager_secret" "secret_username" {
-  arn = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.db_username}"
-}
-
-
-#Fetch DB Password from AWS Secret Manager
-data "aws_secretsmanager_secret_version" "rds_username" {
-  secret_id = data.aws_secretsmanager_secret.secret_username.id
-}
-
-
-data "aws_secretsmanager_secret" "secret_password" {
-  arn = "arn:aws:secretsmanager:${var.region}:${data.aws_caller_identity.current.account_id}:secret:${var.db_secret_name}"
-}
-
-#Fetch DB Password from AWS Secret Manager
-data "aws_secretsmanager_secret_version" "rds_password" {
-  secret_id = data.aws_secretsmanager_secret.secret_password.id
-}
-
 module "rds" {
   source  = "terraform-aws-modules/rds/aws"
   version = "6.3.1"
