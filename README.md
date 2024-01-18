@@ -16,11 +16,11 @@ Before applying the Terraform configurations, make sure you have the following p
 2. AWS CLI configured with the required profile.
    In your home directory, create .aws/credentials file and paste the following contents:
 
-````ini
+```bash
 [rd]
 aws_access_key_id = <AWS_ACCESS_KEY>
 aws_secret_access_key = <AWS_SECRET_KEY>
-```ini
+```
 
 3. Two secrets created in AWS Secret Manager: `expensemanagerdb_username` and `expensemanagerdb_password` to store RDS username and password respectively.
 4. Create a S3 bucket for terraform backed. Make sure the bucket name will be used in backend.tf file in each folder.
@@ -49,7 +49,7 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
    terraform init
    terraform plan
    terraform apply
-````
+   ```
 
 2. **RDS Configuration:**
 
