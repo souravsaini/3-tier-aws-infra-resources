@@ -49,7 +49,7 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
    terraform init
    terraform plan
    terraform apply
-  ```
+````
 
 2. **RDS Configuration:**
 
@@ -92,7 +92,7 @@ The Terraform state is stored remotely using an S3 backend. Make sure to configu
 ## Cleanup
 
 To destroy the created infrastructure, run terraform destroy in each component's directory in reverse order.
+
 ```
 web-server -> app -> rds -> vpc
 ```
-````
