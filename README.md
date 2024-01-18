@@ -53,7 +53,11 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
 
 2. **RDS Configuration:**
 
-   Navigate to the `rds` folder and run:
+   Navigate to the `rds` folder.
+
+   In Terraform.tfvars, replace `subnet_ids`, `vpc_id`, `db_username` and `db_secret_name` with the new vpc configuration.
+
+   Run the following:
 
    ```bash
    terraform init
@@ -63,7 +67,11 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
 
 3. **App Tier Configuration:**
 
-   Navigate to the `app` folder and run:
+   Navigate to the `app` folder.
+
+   In Terraform.tfvars, replace `subnet_ids`, `vpc_id`, `ami_id`, `db_username`, `db_secret_name`, `ssh_public_key` accordingly.
+
+   Run the following:
 
    ```bash
    terraform init
@@ -73,7 +81,11 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
 
 4. **Web Server Tier Configuration:**
 
-   Navigate to the `rds` folder and run:
+   Navigate to the `web-server` folder.
+
+   In Terraform.tfvars, replace `private_subnet_ids`, `public_subnet_ids`, `vpc_id`, `ami_id`, `internal_alb_endpoint` accordingly.
+
+   Run the following:
 
    ```bash
    terraform init
