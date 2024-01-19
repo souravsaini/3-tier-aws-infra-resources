@@ -93,6 +93,11 @@ The components should be provisioned in the specified order: `vpc`, `rds`, `app`
    terraform apply
    ```
 
+5. **View the Application:**
+
+   Find the Public Load Balancer domain from AWS Console, and hit into the browser.
+   Example: http://<PUBLIC_LOAD_BALANCER_DOMAIN>
+
 ## Variables
 
 Each component has its own terraform.tfvars file where you can customize variables like region, instance type, etc.
